@@ -1,0 +1,10 @@
+export const SESSION = "SESSION";
+export const USERS = "USERS";
+export const PROVIDERS = "PROVIDERS";
+export const PLAYERS="PLAYERS";
+export const GET_SERVER_CONFIG = "GET_SERVER_CONFIG";
+export const GAMES = "GAMES";
+export const GAME_TYPES = "GAME_TYPES";
+export const ROLES = "ROLES";
+export const TRANSACTIONS = "TRANSACTIONS";
+export const TOGGLE_DARK_MODE = "TOGGLE_DARK_MODE";

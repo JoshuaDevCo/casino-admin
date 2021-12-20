@@ -1,0 +1,54 @@
+{
+    "signin" : {
+        "path" : "/",
+        "title" : "Signin Page"
+    },
+    "dashboard" : {
+        "path" : "/dashboard",
+        "title" : "Dashboard"
+    },
+    "roles" : {
+        "path" : "/user/roles",
+        "title" : "Roles"
+    },
+    "users" : {
+        "path" : "/user/users",
+        "title" : "Users"
+    },
+    "players" : {
+        "path" : "/user/players",
+        "title" : "Players"
+    },
+    "providers" : {
+        "path" : "/game/providers",
+        "title" : "Providers"
+    },
+    "games" : {
+        "path" : "/game/games",
+        "title" : "Games"
+    },
+    "game-types" : {
+        "path" : "/game/types",
+        "title" : "Game Types"
+    },
+    "finance-transaction" : {
+        "path" : "/finance/transaction",
+        "title" : "Finance-Transaction"
+    },
+    "finance-request" : {
+        "path" : "/finance/request",
+        "title" : "Finance-Request"
+    },
+    "finance-deposit" : {
+        "path" : "/finance/deposit",
+        "title" : "Finance-Deposit"
+    },
+    "finance-withdraw" : {
+        "path" : "/finance/withdraw",
+        "title" : "Finance-Withdraw"
+    },
+    "profile" : {
+        "path" : "/profile",
+        "title" : "User Profile"
+    }
+}

@@ -1,0 +1,391 @@
+import React, { useState, useEffect } from "react";
+// ** Import Material-Ui DataGrid
+import { 
+    DataGrid,
+    GridToolbarContainer,
+    GridToolbar
+} from '@material-ui/data-grid';
+// ** Import Material-Ui Components
+import IconButton from '@material-ui/core/IconButton';
+import Button from "@material-ui/core/Button";
+import Chip from "@material-ui/core/Chip";
+import Tabs from '@material-ui/core/Tabs';
+import Tab from '@material-ui/core/Tab';
+import Pagination from '@material-ui/lab/Pagination';
+import MenuItem from '@material-ui/core/MenuItem';
+import FormControl from '@material-ui/core/FormControl';
+import Select from '@material-ui/core/Select';
+import Icon from '@material-ui/core/Icon';
+// ** Import Material-Ui Icons
+import AddCircleOutlineRoundedIcon from '@material-ui/icons/AddCircleOutlineRounded';
+import BlockRoundedIcon from '@material-ui/icons/BlockRounded';
+import TuneRoundedIcon from '@material-ui/icons/TuneRounded';
+import CheckCircleRoundedIcon from '@material-ui/icons/CheckCircleRounded';
+import RotateLeftIcon from '@material-ui/icons/RotateLeft';
+import ArrowUpwardRoundedIcon from '@material-ui/icons/ArrowUpwardRounded';
+import ArrowDownwardRoundedIcon from '@material-ui/icons/ArrowDownwardRounded';
+import CheckCircleOutlineRoundedIcon from '@material-ui/icons/CheckCircleOutlineRounded';
+import BlockOutlinedIcon from '@material-ui/icons/BlockOutlined';
+import DeleteRoundedIcon from '@material-ui/icons/DeleteRounded';
+// ** Import Actions
+import { useSelector, useDispatch } from 'react-redux';
+import {
+    games_store,
+    gameTypes_store
+} from "../redux/actions/games";
+import { API } from "../hooks";
+import { checkResponse } from "../theme";
+// ** Import Assets
+import useStyles from "../assets/styles";
+import noImage from "../assets/img/no-image.png";
+// ** Import Other Components
+import GameForm from "../components/GameForm";
+
+const Games = () => {
+    // ** Declare Maintainers
+    const classes = useStyles.grid();
+    const dispatch = useDispatch();
+    const { games } = useSelector((state) => state.games)
+    const { gameTypes } = useSelector((state) => state.games)
+    // ** Declare States
+    const [loading, setLoading] = useState(true);       
+    const [page, setPage] = useState(0);  
+    const [perPage, setPerPage] = useState(10);        
+    const [openDialog, setOpenDialog] = useState(false);
+    const [formTitle, setFormTitle] = useState("");
+    const [formData, setFormData] = useState({});
+    const [selectedItems, setSelectedItems] = useState([]);
+    const [activeTab, setActiveTab] = React.useState(0);
+    // ** Declare Effects
+    useEffect(() => {
+        setLoading(true);
+        (async () => {
+            let result = await API.getGameTypes();
+            dispatch(gameTypes_store(result));
+            (async () => {
+                result = await API.getGames(result[activeTab]);
+                dispatch(games_store(result));
+                setLoading(false);
+            })();
+        })();
+    }, [dispatch, activeTab])
+    // ** Declare Actions
+    const changeActiveTab = (event, newValue) => {
+        setPage(0);
+        setActiveTab(newValue);
+    };
+    const changePage = (e, value) => {
+        setPage(value - 1);
+    }
+    const handleEdit = user => {
+        setOpenDialog(true);
+        setFormData(user);
+        setFormTitle("Edit User");
+    }
+    const handleRemove = user => {
+        setLoading(true);
+        (async () => {
+            const result = await API.removeGames(user);
+            checkResponse(result);
+            setLoading(false);
+            reload();
+        })();
+    }
+    const handleEnable = user => {
+        setLoading(true);
+        (async () => {
+            const result = await API.enableGames(user);
+            checkResponse(result);
+            setLoading(false);
+            reload();
+        })();
+    }
+    const handleDisable = user => {
+        setLoading(true);
+        (async () => {
+            const result = await API.disableGames(user);
+            checkResponse(result);
+            setLoading(false);
+            reload();
+        })();
+    }
+    const handleMultiRemove = () => {
+        if(selectedItems.length){
+            handleRemove(selectedItems);
+        } else {
+            alert("Please select users to remove", "info");
+        }
+    }
+    const handleMultiDisable = () => {
+        if(selectedItems.length){
+            handleDisable(selectedItems);
+        } else {
+            alert("Please select users to block", "info");
+        }
+    }
+    const handleMultiEnable = () => {
+        if(selectedItems.length){
+            handleEnable(selectedItems);
+        } else {
+            alert("Please select users to enable", "info");
+        }
+    }
+    const handleAddAction = () => {
+        setFormTitle("Add New User");
+        setOpenDialog(true);
+        setFormData({});
+    }
+    const handleCloseDialog = () => {
+        setOpenDialog(false);
+    }
+    const formActions = {
+        update : async (data) => {
+            const result = await API.updateGame(data);
+            checkResponse(result);
+            handleCloseDialog();
+            reload();
+        },
+        add : async (data) => {
+            const result = await API.addNewGame(data);
+            checkResponse(result);
+            handleCloseDialog();
+            reload();
+        }
+    }
+    const reload = () => {
+        setLoading(true);
+        (async () => {
+            const result = await API.getGames(gameTypes[activeTab]);
+            dispatch(games_store(result));
+            setLoading(false);
+        })();
+    }
+    // ** Declare Grid Components
+    const columns = [
+        { 
+            field: 'action', 
+            headerName: 'Actions', 
+            width: 180,
+            renderCell: ({row}) => (
+                <>
+                    <IconButton 
+                        onClick={() => handleRemove([row.id])}
+                        className={classes.tools} 
+                    >
+                        <DeleteRoundedIcon />
+                    </IconButton>
+                    <IconButton 
+                        onClick={() => handleEdit(row)}
+                        className={classes.tools} 
+                    >
+                        <TuneRoundedIcon />
+                    </IconButton>
+                    {!row.status ? (
+                        <IconButton 
+                            onClick={() => handleEnable([row.id])}
+                            className={classes.tools} 
+                        >
+                            <CheckCircleOutlineRoundedIcon />
+                        </IconButton>
+                    ) : (
+                        <IconButton 
+                            onClick={() => handleDisable([row.id])}
+                            className={classes.tools} 
+                        >
+                            <BlockOutlinedIcon />
+                        </IconButton>
+                    )}
+                    <IconButton className={classes.tools}>
+                        <ArrowUpwardRoundedIcon />
+                    </IconButton>
+                    <IconButton className={classes.tools}>
+                        <ArrowDownwardRoundedIcon />
+                    </IconButton>
+                </>
+            )
+        },
+        { 
+            field: 'order', 
+            headerName: 'Order', 
+            width: 70,
+        },
+        { 
+            field: 'image', 
+            headerName: 'Game Image', 
+            width: 230,
+            renderCell: ({row}) => (
+                row.image ? <img src={row.image} width={"100%"} height={100} alt={row.gameName} /> :
+                <img src={noImage} height={100} alt="no found" />
+            )
+        },
+        { 
+            field: 'gameId', 
+            headerName: 'Game ID', 
+            width: 150,
+        },
+        { 
+            field: 'gameName', 
+            headerName: 'Game Name', 
+            width: 200,
+        },
+        { 
+            field: 'provider', 
+            headerName: 'Provider Name', 
+            width: 100,
+            renderCell: ({row}) => (
+                <>{row.provider.providerName}</>
+            )
+        },
+        { 
+            field: 'status', 
+            headerName: 'Status', 
+            width: 100,
+            renderCell: ({row}) => (
+                row.status ? (
+                    <Chip 
+                        icon={<CheckCircleRoundedIcon className={classes.allowChipIcon} />}
+                        label="Enabled"
+                        size="small"
+                    />
+                ) : (
+                    <Chip 
+                        icon={<BlockRoundedIcon className={classes.blockChipIcon} />}
+                        label="Disabled"
+                        size="small"
+                    />
+                )
+            ) 
+        },
+        { 
+            field: 'gameType', 
+            headerName: 'Game Type', 
+            width: 150,
+            renderCell: ({row}) => (
+                <Chip
+                    icon={
+                        <Icon className={classes.chipIcon}>
+                            {row.gameType ? row.gameType.icon : "help"}
+                        </Icon>
+                    }
+                    label={row.gameType ? row.gameType.name : "None"}
+                    size="small"
+                />
+            )
+        },
+        { 
+            field: 'detail', 
+            headerName: 'Detail', 
+            width: 200,
+            renderCell: ({row}) => (
+                <>{row.detail.toString()}</>
+            )
+        }
+    ];
+    const GridToolBarComponent = () => (
+        <GridToolbarContainer className={classes.toolbar}>
+            <div>
+                <Button onClick={handleAddAction}>
+                    <AddCircleOutlineRoundedIcon />
+                    <div className={classes.spacing} />
+                    Add
+                </Button>
+                <Button onClick={handleMultiRemove}>
+                    <DeleteRoundedIcon />
+                    <div className={classes.spacing} />
+                    Remove
+                </Button>
+                <Button onClick={handleMultiEnable}>
+                    <CheckCircleOutlineRoundedIcon />
+                    <div className={classes.spacing} />
+                    Enable
+                </Button>
+                <Button onClick={handleMultiDisable}>
+                    <BlockOutlinedIcon />
+                    <div className={classes.spacing} />
+                    Block
+                </Button>
+                <Button onClick={reload}>
+                    <RotateLeftIcon />
+                    <div className={classes.spacing} />
+                    Reload
+                </Button>
+            </div>
+            <GridToolbar />
+        </GridToolbarContainer>
+    );
+    const GridFooter = ({ state }) => {
+        console.log(state)
+        return(
+            <div className={classes.footer}>
+                <FormControl className={classes.formControl}>
+                    <div>Per Page</div>
+                    <Select
+                        value={perPage}
+                        onChange={e => {
+                            setPerPage(e.target.value);
+                            setPage(0)
+                        }}
+                    >
+                        <MenuItem value={10}>10</MenuItem>
+                        <MenuItem value={20}>20</MenuItem>
+                        <MenuItem value={50}>50</MenuItem>
+                        <MenuItem value={100}>100</MenuItem>
+                    </Select>
+                </FormControl>
+                <Pagination 
+                    size="small"
+                    page={state.pagination.page + 1}
+                    count={state.pagination.pageCount} 
+                    showFirstButton 
+                    showLastButton 
+                    onChange={changePage}
+                />
+            </div>
+        )
+    }
+    return(
+        <>
+            <Tabs
+                value={activeTab}
+                onChange={changeActiveTab}
+                variant="fullWidth"
+                scrollButtons="on"
+                indicatorColor="primary"
+                textColor="primary"
+                aria-label="scrollable force tabs example"
+            >
+                { gameTypes.map((item, idx) => (
+                    <Tab key={idx} label={item.name} icon={<Icon>{item.icon}</Icon>} />
+                ))}
+            </Tabs>
+            <DataGrid 
+                autoHeight 
+                checkboxSelection 
+                pagination
+                disableSelectionOnClick
+                rowHeight={120}
+                rows={games} 
+                page={page}
+                pageSize={perPage}
+                loading={loading}
+                columns={columns}
+                components={{
+                    Toolbar : GridToolBarComponent,
+                    Footer : GridFooter
+                }}
+                onSelectionModelChange={(newSelection) => {
+                    setSelectedItems(newSelection.selectionModel);
+                }}
+            />
+            <GameForm 
+                formTitle={formTitle}
+                formActions={formActions}
+                formData={formData}
+                openDialog={openDialog}
+                handleCloseDialog={handleCloseDialog}
+            />
+        </>
+    )
+}
+
+export default Games;
